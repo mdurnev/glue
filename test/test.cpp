@@ -9,6 +9,7 @@ int main() {
 
     printf("%d\n", (int)sample::number(25, 37));
     printf("%s\n", (char*)sample::number("25", "37"));
+    printf("%f\n", (double)sample::number(25.1, 37.2));
 
 
     sample::__del__();
