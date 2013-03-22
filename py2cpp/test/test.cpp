@@ -11,6 +11,8 @@ int main() {
     printf("%s\n", (char*)sample::number("25", "37"));
     printf("%f\n", (double)sample::number(25.1, 37.2));
 
+    sample::Hello hello;
+    hello.hello();
 
     sample::__del__();
 

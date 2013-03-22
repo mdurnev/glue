@@ -7,7 +7,7 @@ def number(n, m, *var):
     return n + m
 
 class Hello:
-    text = "hello"
+    text = "Hello::hello"
 
     def hello(self):
         print(self.text)

@@ -1,7 +1,7 @@
 all: test
 
 sample.py.hpp: sample.py
-	echo "sample" | PYTHONPATH=`pwd` ../py2cpp.py > sample.py.hpp
+	PYTHONPATH=`pwd` ../py2cpp.py sample > sample.py.hpp
 	cp ../python.hpp ./
 
 test: test.cpp sample.py.hpp

@@ -1,3 +1,7 @@
+/*
+  Copyright 2013 Mikhail Durnev. Released under the GPLv3
+*/
+
 #ifndef PYTHON_HPP
 #define PYTHON_HPP
 
@@ -31,7 +35,7 @@ public:
     operator char*() {
         if (pValue && Py_TYPE(pValue) == &PyUnicode_Type) {
             //wchar_t* buf = new wchar_t[4096];
-                //Py_ssize_t sz = PyUnicode_AsWideChar(pValue, buf, 4096);
+            //Py_ssize_t sz = PyUnicode_AsWideChar(pValue, buf, 4096);
             return _PyUnicode_AsString(pValue);
         }
         return NULL;
