@@ -1,8 +1,8 @@
 all: test
 
 sample.py.hpp: sample.py
-	echo "sample" | PYTHONPATH=`pwd` ../src/py2cpp.py > sample.py.hpp
-	cp ../src/python.hpp ./
+	echo "sample" | PYTHONPATH=`pwd` ../py2cpp.py > sample.py.hpp
+	cp ../python.hpp ./
 
 test: test.cpp sample.py.hpp
 	g++ test.cpp -o test -l python3.2mu
