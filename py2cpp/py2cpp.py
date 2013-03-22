@@ -65,7 +65,7 @@ def types(n):
 # Generates all C++ polymorphic function definitions
 # for the python function
 #==============================================================================
-def definitions(func_obj, func_name, is_method = False):
+def definitions(func_obj, func_name, is_method = False, is_init = False):
     args = get_argspec(func_obj)
 
     # remove self for class methods
@@ -78,7 +78,10 @@ def definitions(func_obj, func_name, is_method = False):
         arguments = ""
 
         if is_method:
-            print("\n    PyObj %s(" % func_name, end = '')
+            if is_init:
+                print("\n    %s(" % func_name, end = '')
+            else:
+                print("\n    PyObj %s(" % func_name, end = '')
         else:
             print("\nPyObj %s(" % func_name, end = '')
 
@@ -104,7 +107,10 @@ def definitions(func_obj, func_name, is_method = False):
         print(") {")
 
         if is_method:
-            print('        return PyObj(PyObject_CallMethod(object, "%s", %s%s));' % (func_name, format, arguments))
+            if is_init:
+                print('        object = PyObject_CallFunction(class_obj, %s%s);' % (format, arguments))
+            else:
+                print('        return PyObj(PyObject_CallMethod(object, "%s", %s%s));' % (func_name, format, arguments))
             print("    }")
         else:
             print('    return PyObj(PyObject_CallFunction(%s_obj, %s%s));' % (func_name, format, arguments))
@@ -115,15 +121,10 @@ def definitions(func_obj, func_name, is_method = False):
 # Generates class definition
 #==============================================================================
 def define_class(class_obj, class_name):
-    print('class %s {' % class_name)
+    print('\nclass %s {' % class_name)
     print('    static PyObject* class_obj;\n'
           '    PyObject* object;\n\n'
           'public:')
-
-    # default constructor
-    print('    %s() {' % class_name)
-    print('        object = PyObject_CallFunction(class_obj, NULL);\n'
-          '    }\n')
 
     # destructor
     print('    ~%s() {' % class_name)
@@ -135,7 +136,9 @@ def define_class(class_obj, class_name):
     for symbol in class_symbols:
         member = getattr(class_obj, symbol)
 
-        if inspect.isfunction(member):
+        if symbol == "__init__":
+            definitions(member, class_name, True, True)
+        elif inspect.isfunction(member):
             definitions(member, symbol, True)
 
     print('\n    friend bool __init__();\n'
