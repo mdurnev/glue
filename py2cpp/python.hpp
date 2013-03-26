@@ -8,6 +8,33 @@
 #include <stdarg.h>
 #include <python3.2/Python.h>
 
+
+// Python exceptions to be used with try-catch
+class PyExcept {
+protected:
+    PyObject* pExcType;
+
+public:
+    PyExcept(PyObject* pType, bool warn = true) {
+        pExcType = pType;
+
+        if (pExcType != NULL) {
+
+            if (warn) {
+                PyErr_Print();
+            }
+
+            PyErr_Clear();
+        }
+    }
+
+    bool matches(PyObject* exc) {
+        return (bool)PyErr_GivenExceptionMatches(pExcType, exc);
+    }
+};
+
+
+// PyObject wrapper to provide type casting
 class PyObj {
 public:
     PyObject* pValue;

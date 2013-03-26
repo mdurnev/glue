@@ -21,6 +21,22 @@ int main() {
     printf("%s\n", (const char*)test1.hello());
     printf("%d\n", (int)test1.Sum(25, 37));
 
+    try {
+        sample::Sum(25, "37");
+    }
+    catch (PyExcept exc) {
+        if (exc.matches(PyExc_TypeError)) {
+            printf("TypeError was caught\n");
+        }
+    }
+
+    try {
+        sample::Test t;
+        t.Sum(25, "37");
+    }
+    catch (PyExcept exc) {
+    }
+
     sample::__del__();
 
     Py_Finalize();
