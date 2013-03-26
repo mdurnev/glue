@@ -12,9 +12,11 @@ class PyObj {
 public:
     PyObject* pValue;
 
-    PyObj() : pValue(NULL) {}
+    PyObj() : pValue(NULL) {
+    }
 
-    PyObj(PyObject* pObj) : pValue(pObj) {}
+    PyObj(PyObject* pObj) : pValue(pObj) {
+    }
 
     ~PyObj() {
         if (pValue) Py_DECREF(pValue);
@@ -32,11 +34,13 @@ public:
         return 0;
     }
 
-    operator char*() {
+    operator const char*() {
         if (pValue && Py_TYPE(pValue) == &PyUnicode_Type) {
-            //wchar_t* buf = new wchar_t[4096];
-            //Py_ssize_t sz = PyUnicode_AsWideChar(pValue, buf, 4096);
-            return _PyUnicode_AsString(pValue);
+            PyObject* pBytes = PyUnicode_AsUTF8String(pValue);
+
+            if (pBytes != NULL) {
+                return (const char*)PyBytes_AsString(pBytes);
+            }
         }
         return NULL;
     }
