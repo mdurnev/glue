@@ -18,7 +18,7 @@ usage = """Usage: py2cpp <python module name>
 #==============================================================================
 formats = {"int"    : "i",
            "double" : "f",
-           "char*"  : "s" }
+           "const char*"  : "s" }
 
 #==============================================================================
 # Retrieves a list of function parameters (arguments)
@@ -43,7 +43,7 @@ def get_argspec(func):
 # 'PyObj func(char* x, char* y) {'
 #==============================================================================
 def types(n):
-    supported = ["int", "double", "char*"]
+    supported = ["int", "double", "const char*"]
     result = [[supported[0] for x in range(n)]]
 
     idx = [0 for x in range(n)]
@@ -101,7 +101,7 @@ def definitions(func_obj, func_name, is_method = False, is_init = False):
         if format == "":
             format = "NULL"
         else:
-            format = "\"" + format + "\""
+            format = "(char*)\"" + format + "\""
             arguments = " ," + arguments
 
         print(") {")
@@ -111,7 +111,7 @@ def definitions(func_obj, func_name, is_method = False, is_init = False):
                 print('        object = PyObject_CallFunction(class_obj, %s%s);' % (format, arguments))
                 print('        if (object == NULL) throw PyExcept(PyErr_Occurred());')
             else:
-                print('        PyObj res = PyObj(PyObject_CallMethod(object, "%s", %s%s));' % (func_name, format, arguments))
+                print('        PyObj res = PyObj(PyObject_CallMethod(object, (char*)"%s", %s%s));' % (func_name, format, arguments))
                 print('        if (res.pValue == NULL) throw PyExcept(PyErr_Occurred());')
                 print('        return res;')
             print("    }")
