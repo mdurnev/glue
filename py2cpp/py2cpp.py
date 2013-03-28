@@ -133,7 +133,7 @@ def define_class(class_obj, class_name):
 
     # destructor
     print('    ~%s() {' % class_name)
-    print('        if (object != NULL) Py_DECREF(object);\n'
+    print('        Py_XDECREF(object);\n'
           '    }\n')
 
     class_symbols = dir(class_obj)
@@ -202,17 +202,28 @@ def main():
 
             define_class(obj, symbol)
 
-    print("\nbool __init__() {\n"
+    print("\nvoid __del__() {")
+
+    for fn in functions:
+         print("    Py_CLEAR(%s_obj);" % fn)
+
+    for cl in classes:
+         print("    Py_CLEAR(%s::class_obj);" % cl)
+
+    print("}\n")
+    print("bool __init__() {\n"
           "    PyObject* pModule = NULL;")
     print('    PyObject* pName = PyUnicode_FromString("%s");' % module_name)
     print("\n"
           "    if (pName == NULL) {\n"
-          "        pModule = NULL;\n"
           "        return false;\n"
           "    }\n"
           "    else {\n"
           "        pModule = PyImport_Import(pName);\n"
-          "        Py_DECREF(pName);\n")
+          "        Py_DECREF(pName);\n\n"
+          "        if (pModule == NULL) {\n"
+          "            return false;\n"
+          "        }\n")
 
     for fn in functions:
          print('        %s_obj = PyObject_GetAttrString(pModule, "%s");' % (fn, fn))
@@ -221,20 +232,22 @@ def main():
          print('        %s::class_obj = PyObject_GetAttrString(pModule, "%s");' % (cl, cl))
 
     print("\n"
-          "        Py_DECREF(pModule);\n"
-          "    }\n"
-          "    return true;\n"
-          "}\n\n"
-          "void __del__() {")
+          "        Py_DECREF(pModule);\n\n"
+          "        if (false")
 
     for fn in functions:
-         print("    if (%s_obj) Py_DECREF(%s_obj);" % (fn,fn))
+        print('            || %s_obj == NULL' % fn)
 
     for cl in classes:
-         print("    if (%s::class_obj) Py_DECREF(%s::class_obj);" % (cl,cl))
+        print('            || %s::class_obj == NULL' % cl)
 
-    print("}")
-
+    print("           ) {\n"
+          "            __del__();\n"
+          "            return false;\n"
+          "        }\n"
+          "    }\n"
+          "    return true;\n"
+          "}")
 
     print("\n} // namespace %s" % module_name) # end namespace
     print("#endif // %s_PY" % module_name.upper())

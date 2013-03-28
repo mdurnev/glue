@@ -5,7 +5,6 @@
 #ifndef PYTHON_HPP
 #define PYTHON_HPP
 
-#include <stdarg.h>
 #include <python3.2/Python.h>
 
 
@@ -38,15 +37,17 @@ public:
 class PyObj {
 public:
     PyObject* pValue;
+    PyObject* pBytes;
 
-    PyObj() : pValue(NULL) {
+    PyObj() : pValue(NULL), pBytes(NULL) {
     }
 
-    PyObj(PyObject* pObj) : pValue(pObj) {
+    PyObj(PyObject* pObj) : pValue(pObj), pBytes(NULL) {
     }
 
     ~PyObj() {
-        if (pValue) Py_DECREF(pValue);
+        Py_XDECREF(pBytes);
+        Py_XDECREF(pValue);
     }
 
     operator int() {
@@ -63,7 +64,8 @@ public:
 
     operator const char*() {
         if (pValue && Py_TYPE(pValue) == &PyUnicode_Type) {
-            PyObject* pBytes = PyUnicode_AsUTF8String(pValue);
+            Py_CLEAR(pBytes);
+            pBytes = PyUnicode_AsUTF8String(pValue);
 
             if (pBytes != NULL) {
                 return (const char*)PyBytes_AsString(pBytes);
