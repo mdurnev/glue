@@ -5,7 +5,7 @@
 #ifndef PYTHON_HPP
 #define PYTHON_HPP
 
-#include <python3.2/Python.h>
+#include <python##PYTHON_VERSION##/Python.h>
 
 
 // Python exceptions to be used with try-catch
