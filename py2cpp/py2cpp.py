@@ -112,12 +112,12 @@ def definitions(func_obj, func_name, is_method = False, is_init = False):
                 print('        if (object == NULL) throw PyExcept(PyErr_Occurred());')
             else:
                 print('        PyObj res = PyObj(PyObject_CallMethod(object, (char*)"%s", %s%s));' % (func_name, format, arguments))
-                print('        if (res.pValue == NULL) throw PyExcept(PyErr_Occurred());')
+                print('        if (res.type() == NULL) throw PyExcept(PyErr_Occurred());')
                 print('        return res;')
             print("    }")
         else:
             print('    PyObj res = PyObj(PyObject_CallFunction(%s_obj, %s%s));' % (func_name, format, arguments))
-            print('    if (res.pValue == NULL) throw PyExcept(PyErr_Occurred());')
+            print('    if (res.type() == NULL) throw PyExcept(PyErr_Occurred());')
             print('    return res;')
             print("}")
 

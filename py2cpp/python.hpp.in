@@ -7,6 +7,9 @@
 
 #include <python##PYTHON_VERSION##/Python.h>
 
+#ifndef Py_TYPE
+#define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
+#endif
 
 // Python exceptions to be used with try-catch
 class PyExcept {
@@ -35,19 +38,61 @@ public:
 
 // PyObject wrapper to provide type casting
 class PyObj {
-public:
+protected:
     PyObject* pValue;
     PyObject* pBytes;
 
+public:
     PyObj() : pValue(NULL), pBytes(NULL) {
     }
 
     PyObj(PyObject* pObj) : pValue(pObj), pBytes(NULL) {
+        // Do not increment reference count
+    }
+
+    PyObj(const PyObj& pObj) : pBytes(NULL) {
+        Py_XINCREF(pObj.pValue);
+        pValue = pObj.pValue;
+    }
+
+    PyObj& operator =(PyObj& pObj) {
+        // Release old object
+        Py_XDECREF(pBytes);
+        Py_XDECREF(pValue);
+       
+        pValue = pObj.pValue;
+        pBytes = NULL;
+        Py_XINCREF(pValue);
+
+        return *this;
+    }
+
+    PyObj(int value) : pBytes(NULL) {
+        pValue = Py_BuildValue((const char*)"i", value);
+    }
+
+    PyObj(float value) : pBytes(NULL) {
+        pValue = Py_BuildValue((const char*)"f", value);
+    }
+
+    PyObj(double value) : pBytes(NULL) {
+        pValue = Py_BuildValue((const char*)"d", value);
+    }
+
+    PyObj(const char* value) : pBytes(NULL) {
+        pValue = Py_BuildValue((const char*)"s", value);
     }
 
     ~PyObj() {
         Py_XDECREF(pBytes);
         Py_XDECREF(pValue);
+    }
+
+    PyTypeObject* type() {
+        if (pValue != NULL) {
+            return Py_TYPE(pValue);
+        }
+        return NULL;
     }
 
     operator int() {
@@ -63,7 +108,7 @@ public:
     }
 
     operator const char*() {
-        if (pValue && Py_TYPE(pValue) == &PyUnicode_Type) {
+        if (pValue != NULL && Py_TYPE(pValue) == &PyUnicode_Type) {
             Py_CLEAR(pBytes);
             pBytes = PyUnicode_AsUTF8String(pValue);
 
