@@ -37,6 +37,74 @@ int main() {
     catch (PyExcept exc) {
     }
 
+    int i;
+    PyObj pylist = sample::List();
+    printf("[ ");
+    for (i = 0; i < (int)pylist.len(); i++) {
+        printf("%d ", (int)pylist[i]);
+    }
+    printf("]\n");
+
+    PyObj pytuple = sample::Tuple();
+    printf("( ");
+    for (i = 0; i < (int)pytuple.len(); i++) {
+        printf("%d ", (int)pytuple[i]);
+    }
+    printf(")\n");
+
+    std::deque<PyObj> dq = pylist.sequence();
+    printf("deque ( ");
+    for (i = 0; i < (int)dq.size(); i++) {
+        printf("%d ", (int)dq[i]);
+    }
+    printf(")\n");
+
+
+    pylist = sample::List1();
+    std::deque<int> dqi = pylist.int_sequence();
+    std::deque<double> dqd = pylist.double_sequence();
+    std::deque<const char*> dqs = pylist.string_sequence();
+
+    printf("deque<int> ( ");
+    for (i = 0; i < (int)dqi.size(); i++) {
+        printf("%d ", dqi[i]);
+    }
+    printf(")\n");
+
+    printf("deque<double> ( ");
+    for (i = 0; i < (int)dqd.size(); i++) {
+        printf("%f ", dqd[i]);
+    }
+    printf(")\n");
+
+    printf("deque<const char*> ( ");
+    for (i = 0; i < (int)dqs.size(); i++) {
+        printf("\"%s\" ", dqs[i]);
+    }
+    printf(")\n");
+
+
+    std::deque<int>  listi(3);
+    listi[0] = 9;
+    listi[1] = 8;
+    listi[2] = 7;
+    PyObj pli = PyObj(listi);
+    sample::show(pli);
+
+    std::deque<double>  listd(3);
+    listd[0] = 9.7;
+    listd[1] = 8.8;
+    listd[2] = 7.9;
+    PyObj pld = PyObj(listd);
+    sample::show(pld);
+
+    std::deque<const char*>  lists(3);
+    lists[0] = "I";
+    lists[1] = "love";
+    lists[2] = "you";
+    PyObj pls = PyObj(lists);
+    sample::show(pls);
+
     sample::__del__();
 
     Py_Finalize();

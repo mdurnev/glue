@@ -6,6 +6,7 @@
 #define PYTHON_HPP
 
 #include <python##PYTHON_VERSION##/Python.h>
+#include <deque>
 
 #ifndef Py_TYPE
 #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
@@ -55,7 +56,7 @@ public:
         pValue = pObj.pValue;
     }
 
-    PyObj& operator =(PyObj& pObj) {
+    PyObj& operator =(const PyObj& pObj) {
         // Release old object
         Py_XDECREF(pBytes);
         Py_XDECREF(pValue);
@@ -83,6 +84,54 @@ public:
         pValue = Py_BuildValue((const char*)"s", value);
     }
 
+    // Exports a sequence of integers to Python
+    PyObj(std::deque<int> seq) : pBytes(NULL) {
+        long long sz = seq.size();
+        if (sz > 0) {
+            if ((pValue = PyList_New(sz)) != NULL) {
+                int i = 0;
+                for (; i < sz; i++) {
+                    PyList_SetItem(pValue, i, PyLong_FromLong(seq[i]));
+                }
+            }
+        }
+        else {
+            pValue = NULL;
+        }
+    }
+
+    // Exports a sequence of floats to Python
+    PyObj(std::deque<double> seq) : pBytes(NULL) {
+        long long sz = seq.size();
+        if (sz > 0) {
+            if ((pValue = PyList_New(sz)) != NULL) {
+                int i = 0;
+                for (; i < sz; i++) {
+                    PyList_SetItem(pValue, i, PyFloat_FromDouble(seq[i]));
+                }
+            }
+        }
+        else {
+            pValue = NULL;
+        }
+    }
+
+    // Exports a sequence of strings to Python
+    PyObj(std::deque<const char*> seq) : pBytes(NULL) {
+        long long sz = seq.size();
+        if (sz > 0) {
+            if ((pValue = PyList_New(sz)) != NULL) {
+                int i = 0;
+                for (; i < sz; i++) {
+                    PyList_SetItem(pValue, i, PyUnicode_FromString(seq[i]));
+                }
+            }
+        }
+        else {
+            pValue = NULL;
+        }
+    }
+
     ~PyObj() {
         Py_XDECREF(pBytes);
         Py_XDECREF(pValue);
@@ -95,14 +144,18 @@ public:
         return NULL;
     }
 
+    operator PyObject*() {
+        return pValue;
+    }
+
     operator int() {
-        if (pValue && Py_TYPE(pValue) == &PyLong_Type)
+        if (pValue != NULL && Py_TYPE(pValue) == &PyLong_Type)
             return PyLong_AsLong(pValue);
         return 0;
     }
 
     operator double() {
-        if (pValue && Py_TYPE(pValue) == &PyFloat_Type)
+        if (pValue != NULL && Py_TYPE(pValue) == &PyFloat_Type)
             return PyFloat_AsDouble(pValue);
         return 0;
     }
@@ -117,6 +170,85 @@ public:
             }
         }
         return NULL;
+    }
+
+    // Gets sequence length
+    long long len() {
+        if (pValue != NULL && PySequence_Check(pValue)) {
+            return (long long)PySequence_Size(pValue);
+        }
+        return -1;
+    }
+
+    // Gets sequence item
+    PyObj operator [](int idx) {
+        if (pValue != NULL && PySequence_Check(pValue)) {
+                return PyObj(PySequence_GetItem(pValue, idx));
+        }
+
+        return PyObj();
+    }
+
+    // Imports a sequence from Python
+    std::deque<PyObj> sequence() {
+        long long sz = len();
+        if (sz > 0) {
+            std::deque<PyObj> dq(sz);
+            long long i = 0;
+            for (; i < sz; i++) {
+                dq[i] = operator[](i);
+            }
+            return dq;
+        }
+        return std::deque<PyObj>();
+    }
+
+    // Imports a sequence of integers from Python
+    std::deque<int> int_sequence(int placeholder = ~(int)1) {
+        long long sz = len();
+        if (sz > 0) {
+            std::deque<int> dq(sz);
+            long long i = 0;
+            for (; i < sz; i++) {
+                PyObj obj = operator[](i);
+                dq[i] = (obj.type() == &PyLong_Type)?((int)obj):(placeholder);
+            }
+            return dq;
+        }
+        return std::deque<int>();
+    }
+
+    // Imports a sequence of floats from Python
+    std::deque<double> double_sequence(double placeholder = (double)-2.0) {
+        long long sz = len();
+        if (sz > 0) {
+            std::deque<double> dq(sz);
+            long long i = 0;
+            for (; i < sz; i++) {
+                PyObj obj = operator[](i);
+                dq[i] = (obj.type() == &PyFloat_Type)?((double)obj):(placeholder);
+            }
+            return dq;
+        }
+        return std::deque<double>();
+    }
+
+    // Imports a sequence of strings from Python
+    std::deque<const char*> string_sequence(const char* placeholder = "Not a string") {
+        long long sz = len();
+        if (sz > 0) {
+            std::deque<const char*> dq(sz);
+            long long i = 0;
+            for (; i < sz; i++) {
+                PyObj obj = operator[](i);
+                const char* s = (obj.type() == &PyUnicode_Type)?((const char*)obj):(placeholder);
+                char* sc = new char[strlen(s) + 1];
+                strcpy(sc, s);
+                dq[i] = (const char*)sc;
+            }
+            return dq;
+        }
+        return std::deque<const char*>();
     }
 };
 

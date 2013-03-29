@@ -18,7 +18,8 @@ usage = """Usage: py2cpp <python module name>
 #==============================================================================
 formats = {"int"    : "i",
            "double" : "f",
-           "const char*"  : "s" }
+           "const char*"  : "s",
+           "PyObj&" : "O" }
 
 #==============================================================================
 # Retrieves a list of function parameters (arguments)
@@ -43,7 +44,7 @@ def get_argspec(func):
 # 'PyObj func(char* x, char* y) {'
 #==============================================================================
 def types(n):
-    supported = ["int", "double", "const char*"]
+    supported = ["int", "double", "const char*", "PyObj&"]
     result = [[supported[0] for x in range(n)]]
 
     idx = [0 for x in range(n)]
@@ -90,11 +91,13 @@ def definitions(func_obj, func_name, is_method = False, is_init = False):
             global formats
             format += formats[t]
 
+            tc = "(PyObject*)" if t == "PyObj&" else ""
+
             if a != args[-1]:
-                arguments += a + ", "
+                arguments += tc + a + ", "
                 print(t, a, end = ", ")
             else:
-                arguments += a
+                arguments += tc + a
                 print(t, a, end = '')
 
         # generate C++ function body
