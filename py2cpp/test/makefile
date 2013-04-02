@@ -14,5 +14,6 @@ test: test.cpp sample.py.hpp
 	echo "PYTHONPATH=`pwd` ./test" >> run
 	chmod +x run
 
+.PHONY: clean
 clean:
 	rm -rf sample.py.hpp test run __pycache__ python.hpp
