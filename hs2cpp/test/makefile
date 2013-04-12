@@ -4,10 +4,13 @@ hs: sample.hs
 	../hs2cpp.py sample.hs
 	ghc sample.hs.conv.hs
 
-test: hs sample.cpp
-	g++ -I/usr/lib/ghc/include -L/usr/lib/ghc -o test -lHSrts_thr sample.hs.conv.o sample.cpp
+sample.o: sample.cpp
+	g++ -I/usr/lib/ghc/include -c sample.cpp
+
+test: hs sample.o
+	ghc -threaded -no-hs-main -o test -lstdc++ sample.hs.conv.o sample.o
 
 .PHONY: clean
 clean:
-	rm -f *.hi *.o *_stub.h *.conv.hs *.hs.hpp
+	rm -f *.hi *.o *_stub.h *.conv.hs *.hs.hpp test
 

@@ -58,6 +58,9 @@ def main():
     # additional lines for C export
     hs_program_tail = []
 
+    # Haskell module name
+    hs_module_name = "N/D"
+
     # Haskell module name translated to function prefix
     module_name = "N/D"
 
@@ -68,6 +71,7 @@ def main():
         # get module name
         m = re.match(r"\s*module\s*(\S+)\s*where\s*\Z", line)
         if m != None:
+            hs_module_name = m.group(1)
             module_name = m.group(1)[:1].lower() + m.group(1)[1:]
             continue
 
@@ -128,7 +132,7 @@ def main():
         print("Cannot open %s" % hs_file_name)
         sys.exit(1)
 
-    file.write("module %s where\n\n" % (module_name[:1].upper() + module_name[1:]))
+    file.write("module %s where\n\n" % hs_module_name)
     file.write("\nimport Foreign.C.Types\n\n")
 
     for line in hs_program:
@@ -155,7 +159,16 @@ def main():
 
     file.write('#include "%s"\n\n' % (hs_file_name[:-3] + "_stub.h"))
 
+    file.write('extern "C" void __stginit_%s(void);\n\n' % hs_module_name)
+
     file.write("namespace %s {\n\n" % module_name)
+
+    file.write("void __init__(int argc, char** argv) {\n"
+               "    hs_init(&argc, &argv);\n"
+               "    hs_add_root(__stginit_%s);\n}\n\n" % hs_module_name)
+
+    file.write("void __del__() {\n"
+               "    hs_exit();\n}\n\n")
 
     for f in exported_funcs:
         c_name, cpp_name, types = f

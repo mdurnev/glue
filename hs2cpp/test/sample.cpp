@@ -1,9 +1,17 @@
 #include <stdio.h>
 #include "sample.hs.hpp"
 
-int main() {
+int main(int argc, char** argv) {
 
-printf("%d\n", sampleModule::fibonacci(5));
+    sampleModule::__init__(argc, argv);
 
-return 0;
+    int i;
+    for (i = 1; i <= 20; i++) {
+        printf("%d ", sampleModule::fibonacci(i));
+    }
+    printf("\n");
+
+    sampleModule::__del__();
+
+    return 0;
 }
