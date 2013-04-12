@@ -1,6 +1,10 @@
 __pycache__
 *.pyc
 *.pio
+*.o
 py2cpp/test/test
 py2cpp/test/run
 py2cpp/test/*.hpp
+hs2cpp/test/sample.hs.*
+hs2cpp/test/test
+
