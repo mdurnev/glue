@@ -1,4 +1,4 @@
-module SampleModule where
+module Sample.Module where
 
 fibonacci :: Int -> Int
 fibonacci n = fibs !! n

@@ -60,6 +60,7 @@ def main():
 
     # Haskell module name
     hs_module_name = "N/D"
+    hs_module_coded = "N/D"
 
     # Haskell module name translated to function prefix
     module_name = "N/D"
@@ -72,7 +73,10 @@ def main():
         m = re.match(r"\s*module\s*(\S+)\s*where\s*\Z", line)
         if m != None:
             hs_module_name = m.group(1)
-            module_name = m.group(1)[:1].lower() + m.group(1)[1:]
+            hs_module_coded = hs_module_name.replace("Z", "%").replace("z", "*")
+            hs_module_coded = hs_module_coded.replace(".", "zi").replace("_", "zu")
+            hs_module_coded = hs_module_coded.replace("%", "ZZ").replace("*", "zz")
+            module_name = hs_module_coded[:1].lower() + hs_module_coded[1:]
             continue
 
         # find functions
@@ -159,13 +163,13 @@ def main():
 
     file.write('#include "%s"\n\n' % (hs_file_name[:-3] + "_stub.h"))
 
-    file.write('extern "C" void __stginit_%s(void);\n\n' % hs_module_name)
+    file.write('extern "C" void __stginit_%s(void);\n\n' % hs_module_coded)
 
     file.write("namespace %s {\n\n" % module_name)
 
     file.write("void __init__(int argc, char** argv) {\n"
                "    hs_init(&argc, &argv);\n"
-               "    hs_add_root(__stginit_%s);\n}\n\n" % hs_module_name)
+               "    hs_add_root(__stginit_%s);\n}\n\n" % hs_module_coded)
 
     file.write("void __del__() {\n"
                "    hs_exit();\n}\n\n")
